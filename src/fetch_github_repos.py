@@ -7,22 +7,25 @@ import json
 GIT_API_URL='https://api.github.com'
 ORG='tamedia-adtec'
 USER='davidelistello'
-API_TOKEN='#please_provide_your_token#'
+API_TOKEN='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'
 
 # based on https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-organization-repositories
 
 def map_projects(data):
     """Extracts a dictionary using name as key node and clone_url as value key node, from a given data JSON dictionary"""
-    result = []
-    dict = {}
+    pj_names = []
+    pj_dict = {}
     for id in data:
-        result.append(id["name"])
-        dict[id["name"]] = id["clone_url"]
-    return dict
+        pj_names.append(id["name"])
+        pj_dict[id["name"]] = id["clone_url"]
+    return pj_names, pj_dict
 
 
+def push_to_sonar(pj_tuples):
+    """Create entry into SonarQube for each projects using Sonar APIs"""
 
 def github_get_api(url):
+    """List all projects accessible from the organization and create analysis records by calling sonarqube API"""
     try:
         context = ssl._create_unverified_context()
         request = Request(GIT_API_URL + url)
@@ -35,7 +38,8 @@ def github_get_api(url):
         json_response = json.loads(payload)
         response.close()
         print(json_response)
-        print(map_projects(json_response))
+        #push_to_sonar(map_projects(json_response))
+        print(map_projects(json_response)[1])
     except BaseException as exception:
         logging.warning('Failed to get api request from %s' % url)
         logging.warning(f"Exception Name: {type(exception).__name__}")

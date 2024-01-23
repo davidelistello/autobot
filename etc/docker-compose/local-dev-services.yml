@@ -1,0 +1,64 @@
+version: "3.9"
+services:
+
+  sonarqube:
+    image: sonarqube:lts
+    container_name: ce-sonarqube
+    restart: unless-stopped
+    #default user:admin password:admin
+    #update to:Eduard2929
+    #default port is 9000
+    ports:
+      - "9000:9000"
+    expose:
+      - "9000"
+    networks:
+      sonarnet:
+        ipv4_address: 172.25.0.12
+    depends_on:
+      - database
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://database:5432/sonarqube
+      SONAR_JDBC_USERNAME: sonarlocal
+      SONAR_JDBC_PASSWORD: sonarlocal
+    volumes:
+      - sonarqube-data:/opt/sonarqube/data
+      - sonarqube-extensions:/opt/sonarqube/extensions
+      - sonarqube-logs:/opt/sonarqube/logs
+
+  database:
+    # default port 5432
+    image: postgres:14
+    container_name: ce-database
+    restart: unless-stopped
+    networks:
+      sonarnet:
+        ipv4_address: 172.25.0.10
+    environment:
+      POSTGRES_USER: sonarlocal
+      POSTGRES_PASSWORD: sonarlocal
+      POSTGRES_DB: sonarqube
+    volumes:
+      - postgresql:/var/lib/postgresql
+      - postgresql-data:/var/lib/postgresql/data
+
+volumes:
+  sonarqube-data:
+    name: ce-sonarqube-data
+  sonarqube-extensions:
+    name: ce-sonarqube-extensions
+  sonarqube-logs:
+    name: ce-sonarqube-logs
+  postgresql:
+    name: ce-postgresql
+  postgresql-data:
+    name: ce-postgresql-data
+
+networks:
+  sonarnet:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.25.0.0/16
+          gateway: 172.25.0.1
